@@ -146,6 +146,7 @@ class XFormWidget : public QWidget
     Q_OBJECT
 public:
     XFormWidget(QWidget *parent);
+    XFormView *getView(){return view;}
 
 private:
     XFormView *view;

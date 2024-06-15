@@ -55,6 +55,83 @@
 #include <QPainter>
 #include <QPainterPath>
 
+///////////////////////////////////////////////////////////////////////////////
+
+#include "lispthread.h"
+
+template<typename T>
+T* getMainWindow()
+{
+    const QWidgetList &list = QApplication::topLevelWidgets();
+    for(auto w: list) {
+        T *xformWidget = qobject_cast<T*>(w);
+        if(xformWidget)
+            return xformWidget;
+    }
+    return nullptr;
+}
+
+QString ecl_string_to_qstring(cl_object echar)
+{
+    switch (ecl_t_of(echar)) {
+#ifdef ECL_UNICODE
+      case t_string:
+        return QString::fromUcs4((char32_t *)echar->string.self
+                                 , echar->string.fillp);
+        break;
+#endif
+      case t_base_string:
+        return QString::fromLocal8Bit((char *)echar->base_string.self
+                                      , echar->base_string.fillp);
+        break;
+      default:
+        break;
+    }
+    return QString();
+}
+///////////////////////////////////////////////////////////////////////////////
+
+cl_object quit()
+{
+    qApp->quit();
+    return ECL_NIL;
+}
+
+cl_object minimize()
+{
+    if (XFormWidget *xformWidget = getMainWindow<XFormWidget>()) {
+        xformWidget->setWindowState(Qt::WindowMinimized);
+        return ECL_T;
+    }
+    return ECL_NIL;
+}
+
+cl_object animate(cl_object flag)
+{
+    bool bEnabled = ecl_to_bool(flag);
+    if (XFormWidget *xformWidget = getMainWindow<XFormWidget>()) {
+        QMetaObject::invokeMethod(xformWidget->getView(), "setAnimation"
+                                  , Qt::BlockingQueuedConnection
+                                  , Q_ARG(bool, bEnabled));
+        return ecl_make_bool(xformWidget->getView()->animation());
+    }
+
+    return ECL_NIL;
+}
+
+cl_object snapshot(cl_object pname)
+{
+    if (ECL_PATHNAMEP(pname)) {
+        QString filepath =ecl_string_to_qstring(cl_namestring(pname));
+        if (!filepath.isEmpty()) {
+            if (XFormWidget *xformWidget = getMainWindow<XFormWidget>()) {
+                return ecl_make_bool(xformWidget->getView()->grab().save(filepath));
+            }
+        }
+    }
+    return ECL_NIL;
+}
+///////////////////////////////////////////////////////////////////////////////
 const int alpha = 155;
 
 XFormView::XFormView(QWidget *parent)
@@ -915,4 +992,9 @@ XFormWidget::XFormWidget(QWidget *parent)
     textEditor->setEnabled(false);
 
     animateButton->animateClick();
+
+    DEFUN("exit", quit, 0);
+    DEFUN("minimize", minimize, 0);
+    DEFUN("set-animation", animate, 1);
+    DEFUN("take-snapshot", snapshot, 1);
 }

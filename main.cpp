@@ -51,9 +51,18 @@
 #include "xform.h"
 
 #include <QApplication>
+#include <QCommandLineParser>
+#include <QTimer>
+#include "lispthread.h"
 
 int main(int argc, char **argv)
 {
+    /*
+     * First of all, we have to initialize the ECL environment.
+     * This should be done from the main thread.
+     */
+    cl_boot(argc, argv);
+
     Q_INIT_RESOURCE(affine);
 #ifdef Q_OS_ANDROID
     qputenv("QT_SCALE_FACTOR", "2");
@@ -71,6 +80,26 @@ int main(int argc, char **argv)
     }
 
     xformWidget.show();
+
+    QCommandLineParser *parser = new QCommandLineParser();
+    parser->addHelpOption();
+    parser->addOption({{"e", "eval"}, "Evaluate a Lisp expression.", "expression"});
+    parser->process(app);
+
+    //
+    // By default, swank listens on localhost.
+    // start-swank.lisp can be modified to make it listen on another
+    // address by getting the address from the enviroment variable
+    //        ...
+    //   ---->:interface (my-getenv "SWANK_HOST" "localhost")
+    //        :port (parse-integer (my-getenv "SWANK_PORT" "4005"))
+    //        ...
+    qputenv("SWANK_HOST", "192.168.26.131");
+
+    //
+    // The LispThread will be created and started in the event loop
+    //
+    QTimer::singleShot(100, [parser](){(new LispThread(parser->values("eval")))->start();delete parser;});
 
     return app.exec();
 }

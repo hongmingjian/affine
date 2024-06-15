@@ -1,11 +1,15 @@
 SOURCES += main.cpp xform.cpp
-HEADERS += xform.h
+HEADERS += xform.h \
+    lispthread.h
 
 QT += widgets
 
 SHARED_FOLDER = ../affine/shared
 
 include($$SHARED_FOLDER/shared.pri)
+
+INCLUDEPATH += ../ecl/msvc/package
+LIBS += -L../ecl/msvc/package ecl.lib
 
 RESOURCES += affine.qrc
 
