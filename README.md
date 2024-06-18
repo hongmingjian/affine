@@ -1,5 +1,5 @@
 # Note
-The [Affine Transformations](https://doc.qt.io/qt-5/qtwidgets-painting-affine-example.html) is used to demonstrate how to embed ECL into a Qt application. 
+The [Affine Transformations](https://doc.qt.io/qt-5/qtwidgets-painting-affine-example.html) is used to demonstrate how to embed Common Lisp into a Qt application. 
 The idea and some codes are borrowed from [1].
 
 It's only tested on ECL-24.5.10 and Qt-5.15.2 built with MSVC2019 on Windows 7 (x86).

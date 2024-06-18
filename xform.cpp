@@ -64,9 +64,8 @@ T* getMainWindow()
 {
     const QWidgetList &list = QApplication::topLevelWidgets();
     for(auto w: list) {
-        T *xformWidget = qobject_cast<T*>(w);
-        if(xformWidget)
-            return xformWidget;
+        if(T *mw = qobject_cast<T*>(w))
+            return mw;
     }
     return nullptr;
 }

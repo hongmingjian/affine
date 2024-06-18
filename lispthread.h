@@ -16,7 +16,7 @@
 // Define a function to run arbitrary Lisp expressions
 inline cl_object lisp(const std::string & call) {
     qDebug() << QString::fromStdString(call);
-    return cl_safe_eval(c_string_to_object(call.c_str()), ECL_NIL, ECL_NIL);
+    return cl_safe_eval(ecl_read_from_cstring(call.c_str()), ECL_NIL, ECL_NIL);
 }
 
 class LispThread : public QThread
